@@ -10,6 +10,11 @@
  </a> 
 </p>
 
+> # This is a modified version for the pytabkit model.   
+> # In addition, PyTorch Lightning has been adjusted to work with version 2 or higher.    
+
+
+
 ## Why use PyTorch Adapt?
 PyTorch Adapt provides tools for **domain adaptation**, a type of machine learning algorithm that repurposes existing models to work in new domains. This library is:
 
