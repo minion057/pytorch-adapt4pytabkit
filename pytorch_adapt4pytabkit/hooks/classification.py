@@ -79,21 +79,38 @@ class CLossHook(BaseWrapperHook):
             {"domains": domains, "detach_features": detach_features},
         )
 
-    def call(self, inputs, losses):
+    def call(self, inputs, losses): # Edited for pytabkit.
         """"""
         outputs = self.hook(inputs, losses)[0]
-        output_losses = {}
-        logits = c_f.extract(
-            [outputs, inputs],
-            c_f.filter(
-                self.hook.out_keys, "_logits$", [f"^{d}" for d in self.hook.domains]
-            ),
+        [src_logits] = c_f.extract(
+            [outputs, inputs], c_f.filter(self.hook.out_keys, "_logits$")
         )
-        for i, d in enumerate(self.hook.domains):
-            output_losses[self._loss_keys()[i]] = self.loss_fn(
-                logits[i], inputs[f"{d}_labels"]
-            )
-        return outputs, output_losses
+        if isinstance(src_logits, dict):
+            keys = src_logits.keys()
+            # for i, k in enumerate(keys, 1):
+            #     print(f'{i}. key: {k}: shape {src_logits[k].shape}')
+            x = None
+            if 'x_cont' in src_logits and src_logits['x_cont'] is not None:
+                x = src_logits['x_cont']
+                if 'x_cat' in src_logits and src_logits['x_cat'] is not None:
+                    print("Both x_cont and x_cat present. Using x_cont and ignoring x_cat.")
+                else:
+                    print("Using x_cont as input tensor.")
+            elif 'x_cat' in src_logits and src_logits['x_cat'] is not None:
+                x = src_logits['x_cat']
+                print("Using x_cat as input tensor, others ignored.")
+            else:
+                raise ValueError("No valid input found in dictionary values.")
+        else:
+            x = src_logits
+            print("Input is not a dictionary, using input directly.")
+        # loss = self.loss_fn(src_logits, inputs["src_labels"])
+        logit = x.squeeze(0)
+        labels = inputs["src_labels"].squeeze(-1)
+        print(f'x: {x.shape} | logit: {logit.shape} | labels: {labels.shape}')
+        loss = self.loss_fn(logit, labels)
+        outputs = {k:(logit if '_logits' in k else v) for k, v in outputs.items()}
+        return outputs, {self._loss_keys()[0]: loss}
 
     def _loss_keys(self):
         """"""

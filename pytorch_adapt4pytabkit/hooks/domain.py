@@ -94,20 +94,28 @@ class DomainLossHook(BaseWrapperHook):
         self.hook = ChainHook(f_hook, d_hook)
         self.in_keys = self.hook.in_keys + ["src_domain", "target_domain"]
 
-    def call(self, inputs, losses):
+    def call(self, inputs, losses): # Edited for pytabkit.
+        # print(f'DomainLossHook call | losses: {type(losses)}\n{losses}')
         losses = {}
         outputs = self.hook(inputs, losses)[0]
+        # print(f'DomainLossHook call | outputs: {type(outputs)}\n{outputs}')
         labels = self.extract_domain_labels(inputs)
         for domain_name, labels in labels.items():
+            # print(f'DomainLossHook call | labels of domain_name: {domain_name}\n{labels}')
             self.logger(f"Computing loss for {domain_name} domain")
             [dlogits] = c_f.extract(
                 [outputs, inputs],
                 c_f.filter(self.hook.out_keys, "_dlogits$", [f"^{domain_name}"]),
             )
+            dlogits = dlogits.squeeze() # ADD!!!!!
+            # print(f'DomainLossHook call | dlogits: {type(dlogits)}\n{dlogits}')
             if dlogits.dim() > 1:
                 labels = labels.type(torch.long)
+                # print(f'DomainLossHook call | dlogits.dim() > 1 | labels: {type(labels)}\n{labels}')
             else:
                 labels = labels.type(torch.float)
+                # print(f'DomainLossHook call | dlogits.dim() <= 1 | labels: {type(labels)}\n{labels}')
+            # print(f'DomainLossHook call | dlogits: {dlogits.shape} | labels: {labels.shape}')
             loss = self.d_loss_fn(dlogits, labels)
             losses[f"{domain_name}_domain_loss"] = loss
         return outputs, losses

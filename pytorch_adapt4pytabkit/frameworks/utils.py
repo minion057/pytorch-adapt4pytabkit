@@ -3,8 +3,17 @@ import torch
 from ..utils import common_functions as c_f
 
 
-def create_output_dict(f_dict):
-    return {**f_dict, "preds": torch.softmax(f_dict["logits"], dim=1)}
+def create_output_dict(f_dict):  # Edited for pytabkit.
+    # return {**f_dict, "preds": torch.softmax(f_dict["logits"], dim=1)}
+    preds, preds4calculate = dict(), dict()
+    for k, v in f_dict["logits"].items():
+        if v.numel() != 0:
+            preds[k] = torch.softmax(v, dim=-1)
+            preds4calculate[k] = preds[k].argmax(dim=-1)
+        else:
+            preds[k] = torch.Tensor([])
+            preds4calculate[k] = torch.Tensor([])
+    return {**f_dict, "preds": preds, "preds4calculate": preds4calculate}
 
 
 def create_output_dict_multilabel_classification(f_dict):
