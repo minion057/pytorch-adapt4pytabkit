@@ -25,15 +25,15 @@ extras_require_docs = [
 extras_require_dev = ["black", "isort", "nbqa", "flake8"]
 
 setuptools.setup(
-    name="pytorch-adapt4pytabkit",
+    name="pytorch_adapt4pytabkit",
     version=pytorch_adapt.__version__,
-    author="Kevin Musgrave",
+    author="minion057",
     description="Domain adaptation made easy. Fully featured, modular, and customizable.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/minion057/pytorch-adapt4pytabkit",
-    package_dir={"": "src"},
-    packages=setuptools.find_packages(where="src"),
+    # package_dir={"": "src"},
+    # packages=setuptools.find_packages(where="src"),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
