@@ -18,3 +18,5 @@ from .pseudo_labeled_dataset import PseudoLabeledDataset
 from .source_dataset import SourceDataset
 from .target_dataset import TargetDataset
 from .voc_multilabel import VOCMultiLabel
+
+from .pytabkit_dataset import DictToDataset
